@@ -222,16 +222,7 @@ export async function POST(request: NextRequest) {
     const docRef = await adminDb.collection('tasks').add(taskData);
     const task: Task = { id: docRef.id, ...taskData };
 
-    // Update alignment when a focus task is created for today
-    const today = new Date().toISOString().split('T')[0];
-    if (finalListType === 'focus' && date === today) {
-      try {
-        await updateAlignmentForToday(userId, { didSetTasks: true });
-      } catch (alignmentError) {
-        // Don't fail task creation if alignment update fails
-        console.error('[TASKS] Alignment update failed:', alignmentError);
-      }
-    }
+    // Note: Task alignment tracking removed - weight-loss app uses meal/workout logs instead
 
     return NextResponse.json({ task }, { status: 201 });
   } catch (error: any) {

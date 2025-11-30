@@ -117,9 +117,9 @@ export async function GET(
 
       members.push({
         id: doc.id,
-        squadId: memberData.squadId,
+        circleId: memberData.squadId || memberData.circleId,
         userId: memberData.userId,
-        roleInSquad: isCoach ? 'coach' : (memberData.roleInSquad || 'member'),
+        roleInCircle: isCoach ? 'coach' : (memberData.roleInSquad || memberData.roleInCircle || 'member'),
         firstName,
         lastName,
         imageUrl,
@@ -137,8 +137,8 @@ export async function GET(
     // Note: Coach does NOT influence the sorting formula for members
     members.sort((a, b) => {
       // Coach always first (but doesn't participate in alignment-based sorting)
-      if (a.roleInSquad === 'coach') return -1;
-      if (b.roleInSquad === 'coach') return 1;
+      if (a.roleInCircle === 'coach') return -1;
+      if (b.roleInCircle === 'coach') return 1;
       // Then by alignment score (descending)
       const scoreDiff = (b.alignmentScore || 0) - (a.alignmentScore || 0);
       if (scoreDiff !== 0) return scoreDiff;

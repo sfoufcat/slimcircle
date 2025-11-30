@@ -7,8 +7,9 @@ interface UseAlignmentReturn extends AlignmentState {
   refresh: () => Promise<void>;
   updateAlignment: (updates: {
     didMorningCheckin?: boolean;
-    didSetTasks?: boolean;
-    didInteractWithSquad?: boolean;
+    didLogMeals?: boolean;
+    didLogWorkout?: boolean;
+    didInteractWithCircle?: boolean;
     hasActiveGoal?: boolean;
   }) => Promise<void>;
 }
@@ -49,8 +50,9 @@ export function useAlignment(): UseAlignmentReturn {
   // Update alignment
   const updateAlignment = useCallback(async (updates: {
     didMorningCheckin?: boolean;
-    didSetTasks?: boolean;
-    didInteractWithSquad?: boolean;
+    didLogMeals?: boolean;
+    didLogWorkout?: boolean;
+    didInteractWithCircle?: boolean;
     hasActiveGoal?: boolean;
   }) => {
     try {
@@ -60,11 +62,14 @@ export function useAlignment(): UseAlignmentReturn {
         if (updates.didMorningCheckin !== undefined) {
           updatedAlignment.didMorningCheckin = updates.didMorningCheckin;
         }
-        if (updates.didSetTasks !== undefined) {
-          updatedAlignment.didSetTasks = updates.didSetTasks;
+        if (updates.didLogMeals !== undefined) {
+          updatedAlignment.didLogMeals = updates.didLogMeals;
         }
-        if (updates.didInteractWithSquad !== undefined) {
-          updatedAlignment.didInteractWithSquad = updates.didInteractWithSquad;
+        if (updates.didLogWorkout !== undefined) {
+          updatedAlignment.didLogWorkout = updates.didLogWorkout;
+        }
+        if (updates.didInteractWithCircle !== undefined) {
+          updatedAlignment.didInteractWithCircle = updates.didInteractWithCircle;
         }
         if (updates.hasActiveGoal !== undefined) {
           updatedAlignment.hasActiveGoal = updates.hasActiveGoal;
@@ -73,9 +78,9 @@ export function useAlignment(): UseAlignmentReturn {
         // Recalculate score
         let score = 0;
         if (updatedAlignment.didMorningCheckin) score += 25;
-        if (updatedAlignment.didSetTasks) score += 25;
-        if (updatedAlignment.didInteractWithSquad) score += 25;
-        if (updatedAlignment.hasActiveGoal) score += 25;
+        if (updatedAlignment.didLogMeals) score += 25;
+        if (updatedAlignment.didLogWorkout) score += 25;
+        if (updatedAlignment.didInteractWithCircle) score += 25;
         updatedAlignment.alignmentScore = score;
         updatedAlignment.fullyAligned = score === 100;
         
@@ -130,18 +135,21 @@ export function useAlignment(): UseAlignmentReturn {
 }
 
 /**
- * Utility function to track squad interaction
- * Call this when user sends a message in squad chat
+ * Utility function to track circle interaction
+ * Call this when user sends a message in circle chat
  */
-export async function trackSquadInteraction(): Promise<void> {
+export async function trackCircleInteraction(): Promise<void> {
   try {
     await fetch('/api/alignment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ didInteractWithSquad: true }),
+      body: JSON.stringify({ didInteractWithCircle: true }),
     });
   } catch (err) {
-    console.error('Error tracking squad interaction:', err);
+    console.error('Error tracking circle interaction:', err);
   }
 }
+
+// Legacy alias for backwards compatibility
+export const trackSquadInteraction = trackCircleInteraction;
 

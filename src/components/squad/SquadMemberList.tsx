@@ -20,8 +20,8 @@ interface SquadMemberListProps {
 
 export function SquadMemberList({ members, isPremium }: SquadMemberListProps) {
   // Separate coach and regular members
-  const coach = members.find(m => m.roleInSquad === 'coach');
-  const regularMembers = members.filter(m => m.roleInSquad === 'member');
+  const coach = members.find(m => m.roleInCircle === 'coach');
+  const regularMembers = members.filter(m => m.roleInCircle === 'member');
 
   return (
     <div>

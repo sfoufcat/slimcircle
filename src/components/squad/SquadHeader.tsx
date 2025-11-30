@@ -142,9 +142,10 @@ export function SquadHeader({ squad, onSquadUpdated }: SquadHeaderProps) {
     userId: squad.id,
     date: new Date().toISOString().split('T')[0],
     didMorningCheckin: avgAlignment >= 25,
-    didSetTasks: avgAlignment >= 50,
-    didInteractWithSquad: avgAlignment >= 75,
-    hasActiveGoal: avgAlignment === 100,
+    didLogMeals: avgAlignment >= 50,
+    didLogWorkout: avgAlignment >= 75,
+    didInteractWithCircle: avgAlignment === 100,
+    hasActiveGoal: true, // Not part of score calculation
     alignmentScore: avgAlignment, // Use actual squad avg alignment for arc
     fullyAligned: avgAlignment === 100,
     streakOnThisDay: squadStreak,

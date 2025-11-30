@@ -78,10 +78,10 @@ export function AlignmentSheet({
 
   // Alignment items
   const alignmentItems = [
-    { label: 'Confidence check-in', completed: alignment?.didMorningCheckin ?? false },
-    { label: "Set today's tasks", completed: alignment?.didSetTasks ?? false },
-    { label: 'Chat with your squad', completed: alignment?.didInteractWithSquad ?? false },
-    { label: 'Have an active goal', completed: alignment?.hasActiveGoal ?? false },
+    { label: 'Morning check-in', completed: alignment?.didMorningCheckin ?? false },
+    { label: 'Log your meals', completed: alignment?.didLogMeals ?? false },
+    { label: 'Log your workout', completed: alignment?.didLogWorkout ?? false },
+    { label: 'Chat with your group', completed: alignment?.didInteractWithCircle ?? false },
   ];
 
   // Check if it's a weekend

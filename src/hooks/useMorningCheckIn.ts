@@ -66,7 +66,7 @@ export function useMorningCheckIn(): UseMorningCheckInReturn {
             emotionalState: data.checkIn.emotionalState,
             userThought: data.checkIn.userThought,
             aiReframe: data.checkIn.aiReframe,
-            manifestIdentityCompleted: data.checkIn.manifestIdentityCompleted,
+            manifestCommitmentCompleted: data.checkIn.manifestCommitmentCompleted,
             manifestGoalCompleted: data.checkIn.manifestGoalCompleted,
           });
         }

@@ -52,7 +52,7 @@ export default function ManifestIdentityPage() {
       await fetch('/api/checkin/morning', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ manifestIdentityCompleted: true }),
+        body: JSON.stringify({ manifestCommitmentCompleted: true }),
       });
     } catch (error) {
       console.error('Error updating check-in:', error);

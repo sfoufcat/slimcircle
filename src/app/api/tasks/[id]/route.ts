@@ -86,16 +86,8 @@ export async function PATCH(
 
     const updatedTask: Task = { ...existingTask, ...updates } as Task;
 
-    // Update alignment when a task is moved to focus for today
+    // Note: Task alignment tracking removed - weight-loss app uses meal/workout logs instead
     const today = new Date().toISOString().split('T')[0];
-    if (body.listType === 'focus' && existingTask.listType !== 'focus' && existingTask.date === today) {
-      try {
-        await updateAlignmentForToday(userId, { didSetTasks: true });
-      } catch (alignmentError) {
-        // Don't fail task update if alignment update fails
-        console.error('[TASKS] Alignment update failed:', alignmentError);
-      }
-    }
 
     // Check if all 3 focus tasks are now completed and send notification
     if (body.status === 'completed' && existingTask.listType === 'focus' && existingTask.date === today) {

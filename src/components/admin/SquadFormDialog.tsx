@@ -656,7 +656,7 @@ export function SquadFormDialog({ squad, open, onClose, onSave }: SquadFormDialo
                           )}
                         </p>
                         <p className="text-xs text-[#5f5a55] dark:text-[#b2b6c2] truncate font-albert">
-                          {member.roleInSquad}
+                          {member.roleInCircle}
                         </p>
                       </div>
                       <button

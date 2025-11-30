@@ -56,8 +56,9 @@ export async function GET(request: NextRequest) {
  * 
  * Body:
  * - didMorningCheckin?: boolean
- * - didSetTasks?: boolean
- * - didInteractWithSquad?: boolean
+ * - didLogMeals?: boolean
+ * - didLogWorkout?: boolean
+ * - didInteractWithCircle?: boolean
  * - hasActiveGoal?: boolean (usually computed automatically)
  */
 export async function POST(request: NextRequest) {

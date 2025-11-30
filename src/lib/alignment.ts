@@ -3,10 +3,10 @@
  * 
  * Handles computing and updating daily alignment scores and streaks.
  * The alignment score is composed of four behaviors, each worth 25%:
- * 1. Morning confidence check-in done
- * 2. Set today's tasks (Daily Focus)
- * 3. Chat with your squad (send a message)
- * 4. Have an active goal
+ * 1. Morning check-in done
+ * 2. Log meals for the day
+ * 3. Log workout for the day
+ * 4. Chat with your circle (send a message)
  */
 
 import { adminDb } from './firebase-admin';
@@ -68,15 +68,15 @@ function getAlignmentDocId(userId: string, date: string): string {
  */
 function calculateAlignmentScore(
   didMorningCheckin: boolean,
-  didSetTasks: boolean,
-  didInteractWithSquad: boolean,
-  hasActiveGoal: boolean
+  didLogMeals: boolean,
+  didLogWorkout: boolean,
+  didInteractWithCircle: boolean
 ): number {
   let score = 0;
   if (didMorningCheckin) score += 25;
-  if (didSetTasks) score += 25;
-  if (didInteractWithSquad) score += 25;
-  if (hasActiveGoal) score += 25;
+  if (didLogMeals) score += 25;
+  if (didLogWorkout) score += 25;
+  if (didInteractWithCircle) score += 25;
   return score;
 }
 
@@ -99,44 +99,55 @@ async function checkUserHasActiveGoal(userId: string): Promise<boolean> {
 }
 
 /**
- * Check if user has set tasks for today (at least one focus task)
- * Also checks evening check-in as fallback (tasks may have moved to backlog)
+ * Check if user has logged meals for today
+ * Checks the daily entry for meal logs
  */
-async function checkUserHasSetTasks(userId: string, date: string): Promise<boolean> {
+async function checkUserHasLoggedMeals(userId: string, date: string): Promise<boolean> {
   try {
-    // First, check if there are any focus tasks
-    const tasksSnapshot = await adminDb
-      .collection('tasks')
-      .where('userId', '==', userId)
-      .where('date', '==', date)
-      .where('listType', '==', 'focus')
-      .limit(1)
+    // Check if there's a daily entry with meals logged
+    const dailyEntryDoc = await adminDb
+      .collection('dailyEntries')
+      .doc(`${userId}_${date}`)
       .get();
     
-    if (!tasksSnapshot.empty) {
-      return true;
-    }
-
-    // Fallback: Check evening check-in for historical task data
-    // This handles the case where tasks were moved to backlog after evening check-in
-    const eveningCheckInDoc = await adminDb
-      .collection('users')
-      .doc(userId)
-      .collection('eveningCheckins')
-      .doc(date)
-      .get();
-
-    if (eveningCheckInDoc.exists) {
-      const data = eveningCheckInDoc.data();
-      // If evening check-in has recorded tasks (either in snapshot or total count), user had set tasks
-      if (data?.completedTasksSnapshot?.length > 0 || data?.tasksTotal > 0) {
+    if (dailyEntryDoc.exists) {
+      const data = dailyEntryDoc.data();
+      // If daily entry has meals logged, return true
+      if (data?.meals && data.meals.trim().length > 0) {
         return true;
       }
     }
 
     return false;
   } catch (error) {
-    console.error('[ALIGNMENT] Error checking tasks:', error);
+    console.error('[ALIGNMENT] Error checking meals:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if user has logged workout for today
+ * Checks the daily entry for workout logs
+ */
+async function checkUserHasLoggedWorkout(userId: string, date: string): Promise<boolean> {
+  try {
+    // Check if there's a daily entry with workout logged
+    const dailyEntryDoc = await adminDb
+      .collection('dailyEntries')
+      .doc(`${userId}_${date}`)
+      .get();
+    
+    if (dailyEntryDoc.exists) {
+      const data = dailyEntryDoc.data();
+      // If daily entry has workedOut true, return true
+      if (data?.workedOut === true) {
+        return true;
+      }
+    }
+
+    return false;
+  } catch (error) {
+    console.error('[ALIGNMENT] Error checking workout:', error);
     return false;
   }
 }
@@ -207,14 +218,19 @@ export async function updateAlignmentForToday(
 
     // Merge updates with existing data
     // These flags are "sticky" - once true for a day, they stay true
-    // This prevents losing credit when tasks are moved to backlog after evening check-in
     const didMorningCheckin = updates.didMorningCheckin || existingData.didMorningCheckin || false;
-    const didInteractWithSquad = updates.didInteractWithSquad || existingData.didInteractWithSquad || false;
+    const didInteractWithCircle = updates.didInteractWithCircle || existingData.didInteractWithCircle || false;
     
-    // For didSetTasks: if already true, keep it true; otherwise check updates or current state
-    let didSetTasks = existingData.didSetTasks || false;
-    if (!didSetTasks) {
-      didSetTasks = updates.didSetTasks ?? await checkUserHasSetTasks(userId, today);
+    // For didLogMeals: if already true, keep it true; otherwise check updates or current state
+    let didLogMeals = existingData.didLogMeals || false;
+    if (!didLogMeals) {
+      didLogMeals = updates.didLogMeals ?? await checkUserHasLoggedMeals(userId, today);
+    }
+    
+    // For didLogWorkout: if already true, keep it true; otherwise check updates or current state
+    let didLogWorkout = existingData.didLogWorkout || false;
+    if (!didLogWorkout) {
+      didLogWorkout = updates.didLogWorkout ?? await checkUserHasLoggedWorkout(userId, today);
     }
     
     // Always recompute hasActiveGoal to ensure it's current
@@ -223,9 +239,9 @@ export async function updateAlignmentForToday(
     // Calculate score
     const alignmentScore = calculateAlignmentScore(
       didMorningCheckin,
-      didSetTasks,
-      didInteractWithSquad,
-      hasActiveGoal
+      didLogMeals,
+      didLogWorkout,
+      didInteractWithCircle
     );
     const fullyAligned = alignmentScore === 100;
 
@@ -242,8 +258,9 @@ export async function updateAlignmentForToday(
       userId,
       date: today,
       didMorningCheckin,
-      didSetTasks,
-      didInteractWithSquad,
+      didLogMeals,
+      didLogWorkout,
+      didInteractWithCircle,
       hasActiveGoal,
       alignmentScore,
       fullyAligned,
@@ -376,16 +393,21 @@ export async function initializeAlignmentForToday(userId: string): Promise<UserA
     // Refresh hasActiveGoal as it can change (goal completed/archived)
     const hasActiveGoal = await checkUserHasActiveGoal(userId);
     
-    // For didSetTasks: only check if currently false (it's "sticky" - once true, stays true)
-    // This prevents losing credit when tasks are moved to backlog after evening check-in
-    let didSetTasks = existing.didSetTasks;
-    if (!didSetTasks) {
-      didSetTasks = await checkUserHasSetTasks(userId, today);
+    // For didLogMeals: only check if currently false (it's "sticky" - once true, stays true)
+    let didLogMeals = existing.didLogMeals;
+    if (!didLogMeals) {
+      didLogMeals = await checkUserHasLoggedMeals(userId, today);
+    }
+    
+    // For didLogWorkout: only check if currently false (it's "sticky" - once true, stays true)
+    let didLogWorkout = existing.didLogWorkout;
+    if (!didLogWorkout) {
+      didLogWorkout = await checkUserHasLoggedWorkout(userId, today);
     }
     
     // Only update if something changed
-    if (existing.hasActiveGoal !== hasActiveGoal || existing.didSetTasks !== didSetTasks) {
-      return (await updateAlignmentForToday(userId, { hasActiveGoal, didSetTasks }))!;
+    if (existing.hasActiveGoal !== hasActiveGoal || existing.didLogMeals !== didLogMeals || existing.didLogWorkout !== didLogWorkout) {
+      return (await updateAlignmentForToday(userId, { hasActiveGoal, didLogMeals, didLogWorkout }))!;
     }
     
     return existing;

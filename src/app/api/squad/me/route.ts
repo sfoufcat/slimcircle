@@ -139,9 +139,9 @@ export async function GET(request: Request) {
 
       members.push({
         id: doc.id,
-        squadId: memberData.squadId,
+        circleId: memberData.squadId || memberData.circleId,
         userId: memberData.userId,
-        roleInSquad: isCoach ? 'coach' : (memberData.roleInSquad || 'member'),
+        roleInCircle: isCoach ? 'coach' : (memberData.roleInSquad || memberData.roleInCircle || 'member'),
         firstName,
         lastName,
         imageUrl,
@@ -160,8 +160,8 @@ export async function GET(request: Request) {
     // Only sort by alignment if stats are loaded
     members.sort((a, b) => {
       // Coach always first (but doesn't participate in alignment-based sorting)
-      if (a.roleInSquad === 'coach') return -1;
-      if (b.roleInSquad === 'coach') return 1;
+      if (a.roleInCircle === 'coach') return -1;
+      if (b.roleInCircle === 'coach') return 1;
       
       // If stats not loaded, sort alphabetically only
       if (!squadStats) {

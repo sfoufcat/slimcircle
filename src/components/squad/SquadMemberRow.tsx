@@ -43,7 +43,7 @@ function getAlignmentColor(score: number): string {
 
 export function SquadMemberRow({ member }: SquadMemberRowProps) {
   const { user: clerkUser } = useUser();
-  const isCoach = member.roleInSquad === 'coach';
+  const isCoach = member.roleInCircle === 'coach';
 
   // Fetch story availability for this member
   const storyAvailability = useUserStoryAvailability(member.userId);

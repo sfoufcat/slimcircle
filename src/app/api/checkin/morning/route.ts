@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       date: today,
       userId,
       emotionalState: 'neutral',
-      manifestIdentityCompleted: false,
+      manifestCommitmentCompleted: false,
       manifestGoalCompleted: false,
       tasksPlanned: false,
       createdAt: now,
@@ -95,12 +95,8 @@ export async function PATCH(request: NextRequest) {
     // Update alignment when morning check-in is completed
     if (updates.completedAt) {
       try {
-        // Check if tasks were also planned (from the Plan Day step)
-        const didSetTasks = updates.tasksPlanned === true;
-        
         await updateAlignmentForToday(userId, {
           didMorningCheckin: true,
-          didSetTasks: didSetTasks || undefined, // Only set if true
         });
       } catch (alignmentError) {
         // Don't fail the check-in if alignment update fails
