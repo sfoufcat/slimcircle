@@ -75,11 +75,14 @@ export async function POST(request: NextRequest) {
     if (typeof body.didMorningCheckin === 'boolean') {
       updates.didMorningCheckin = body.didMorningCheckin;
     }
-    if (typeof body.didSetTasks === 'boolean') {
-      updates.didSetTasks = body.didSetTasks;
+    if (typeof body.didLogMeals === 'boolean') {
+      updates.didLogMeals = body.didLogMeals;
     }
-    if (typeof body.didInteractWithSquad === 'boolean') {
-      updates.didInteractWithSquad = body.didInteractWithSquad;
+    if (typeof body.didLogWorkout === 'boolean') {
+      updates.didLogWorkout = body.didLogWorkout;
+    }
+    if (typeof body.didInteractWithCircle === 'boolean') {
+      updates.didInteractWithCircle = body.didInteractWithCircle;
     }
     if (typeof body.hasActiveGoal === 'boolean') {
       updates.hasActiveGoal = body.hasActiveGoal;
