@@ -8,33 +8,33 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { motion } from 'framer-motion';
 import { OnboardingLayout, QuizOption, OnboardingCTA } from '@/components/onboarding/OnboardingLayout';
-import type { BusinessStage } from '@/types';
+import type { CurrentSituation } from '@/types';
 
-const GROWTH_OPTIONS: { value: BusinessStage; letter: string; label: string }[] = [
+const GROWTH_OPTIONS: { value: CurrentSituation; letter: string; label: string }[] = [
   { 
     value: 'just_starting', 
     letter: 'A',
-    label: 'Just getting started',
+    label: 'Just getting started on my weight-loss journey',
   },
   { 
-    value: 'building_momentum', 
+    value: 'tried_before', 
     letter: 'B',
-    label: 'Building momentum',
+    label: 'I\'ve tried before but struggled to maintain',
   },
   { 
-    value: 'growing_steadily', 
+    value: 'maintaining', 
     letter: 'C',
-    label: 'Growing steadily',
+    label: 'Maintaining but want to push further',
   },
   { 
-    value: 'leveling_up', 
+    value: 'struggling', 
     letter: 'D',
-    label: 'Leveling up a new chapter',
+    label: 'Currently struggling and need support',
   },
   { 
-    value: 'reinventing', 
+    value: 'fresh_start', 
     letter: 'E',
-    label: 'Reinventing myself',
+    label: 'Ready for a fresh start',
   },
 ];
 
@@ -45,7 +45,7 @@ const GROWTH_OPTIONS: { value: BusinessStage; letter: string; label: string }[] 
 export default function BusinessStagePage() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
-  const [selected, setSelected] = useState<BusinessStage | null>(null);
+  const [selected, setSelected] = useState<CurrentSituation | null>(null);
   const [existingData, setExistingData] = useState<any>(null);
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -67,7 +67,7 @@ export default function BusinessStagePage() {
     }
   }, [isLoaded, user]);
 
-  const handleContinue = async (value?: BusinessStage) => {
+  const handleContinue = async (value?: CurrentSituation) => {
     const selectedValue = value || selected;
     if (!selectedValue) return;
     
@@ -95,7 +95,7 @@ export default function BusinessStagePage() {
   };
 
   // Auto-advance when an option is selected
-  const handleOptionClick = (value: BusinessStage) => {
+  const handleOptionClick = (value: CurrentSituation) => {
     setSelected(value);
     setTimeout(() => {
       handleContinue(value);

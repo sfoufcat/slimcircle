@@ -46,9 +46,9 @@ export async function GET(
 
     // Extract goal data
     let activeGoal = null;
-    if (userData.goal && userData.goalTargetDate) {
+    if (userData.weightGoal?.title && userData.weightGoal?.targetDate) {
       const today = new Date();
-      const targetDate = new Date(userData.goalTargetDate);
+      const targetDate = new Date(userData.weightGoal.targetDate);
       const startDate = new Date(userData.goalSetAt || userData.createdAt);
       
       const totalDays = Math.ceil((targetDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -56,8 +56,8 @@ export async function GET(
       const progressPercentage = totalDays > 0 ? Math.min(Math.round((daysPassed / totalDays) * 100), 100) : 0;
 
       activeGoal = {
-        goal: userData.goal,
-        targetDate: userData.goalTargetDate,
+        goal: userData.weightGoal.title,
+        targetDate: userData.weightGoal.targetDate,
         progress: {
           percentage: progressPercentage,
         },
@@ -77,7 +77,6 @@ export async function GET(
       avatarUrl: userData.avatarUrl || profileImageUrl,
       location: userData.location,
       profession: userData.profession,
-      company: userData.company,
       bio: userData.bio,
       interests: userData.interests,
       identity: userData.identity,

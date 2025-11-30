@@ -10,14 +10,14 @@ async function completeGoal(userId: string, userRef: FirebaseFirestore.DocumentR
   const userDoc = await userRef.get();
   const userData = userDoc.data();
 
-  if (!userData?.goal) {
+  if (!userData?.weightGoal?.title) {
     return null;
   }
 
   // Build completed goal history entry
   const goalHistoryEntry = {
-    goal: userData.goal,
-    targetDate: userData.goalTargetDate,
+    goal: userData.weightGoal.title,
+    targetDate: userData.weightGoal.targetDate,
     setAt: userData.goalSetAt || now,
     archivedAt: null, // Not archived, completed
     progress: 100,
@@ -31,8 +31,7 @@ async function completeGoal(userId: string, userRef: FirebaseFirestore.DocumentR
   // Clear current goal and save to history
   await userRef.set(
     {
-      goal: null,
-      goalTargetDate: null,
+      weightGoal: null,
       goalSetAt: null,
       goalProgress: null,
       goalCompleted: null,
@@ -102,12 +101,16 @@ export async function PATCH(req: Request) {
       updatedAt: now,
     };
 
-    if (goal !== undefined) {
-      updateData.goal = goal.trim();
-    }
-
-    if (targetDate !== undefined) {
-      updateData.goalTargetDate = targetDate;
+    // Build weightGoal updates if goal or targetDate changed
+    if (goal !== undefined || targetDate !== undefined) {
+      const userDoc = await userRef.get();
+      const existingGoal = userDoc.data()?.weightGoal || {};
+      updateData.weightGoal = {
+        ...existingGoal,
+        ...(goal !== undefined && { title: goal.trim() }),
+        ...(targetDate !== undefined && { targetDate }),
+        updatedAt: now,
+      };
     }
 
     if (progress !== undefined) {
@@ -124,8 +127,8 @@ export async function PATCH(req: Request) {
     return NextResponse.json({
       success: true,
       goal: {
-        goal: updatedData?.goal,
-        targetDate: updatedData?.goalTargetDate,
+        goal: updatedData?.weightGoal?.title,
+        targetDate: updatedData?.weightGoal?.targetDate,
         progress: updatedData?.goalProgress || 0,
       },
     });
@@ -164,7 +167,7 @@ export async function POST(req: Request) {
 
     const userData = userDoc.data();
     
-    if (!userData?.goal) {
+    if (!userData?.weightGoal?.title) {
       return NextResponse.json(
         { error: 'No active goal to archive' },
         { status: 400 }
@@ -173,8 +176,8 @@ export async function POST(req: Request) {
 
     // Build archived goal history entry (completedAt is null = archived, not completed)
     const goalHistoryEntry = {
-      goal: userData.goal,
-      targetDate: userData.goalTargetDate,
+      goal: userData.weightGoal.title,
+      targetDate: userData.weightGoal.targetDate,
       setAt: userData.goalSetAt || now,
       archivedAt: now,
       progress: userData.goalProgress || 0,
@@ -188,8 +191,7 @@ export async function POST(req: Request) {
     // Clear current goal and save to history
     await userRef.set(
       {
-        goal: null,
-        goalTargetDate: null,
+        weightGoal: null,
         goalSetAt: null,
         goalProgress: null,
         goalCompleted: null,

@@ -97,9 +97,9 @@ export async function scheduleSquadCallJobs({
 
     const jobData: SquadCallScheduledJob = {
       id: jobId,
-      squadId,
-      squadName,
-      isPremiumSquad,
+      circleId: squadId,
+      circleName: squadName,
+      isPremiumCircle: isPremiumSquad,
       ...(callId && { callId }),
       jobType: type,
       scheduledTime: time.toISOString(),
@@ -224,9 +224,9 @@ function formatCallTimeInUserTimezone(callDateTime: string, userTimezone: string
  */
 function getNotificationType(jobType: SquadCallJobType): NotificationType | null {
   switch (jobType) {
-    case 'notification_24h': return 'squad_call_24h';
-    case 'notification_1h': return 'squad_call_1h';
-    case 'notification_live': return 'squad_call_live';
+    case 'notification_24h': return 'circle_call_24h';
+    case 'notification_1h': return 'circle_call_1h';
+    case 'notification_live': return 'circle_call_live';
     default: return null;
   }
 }
@@ -314,13 +314,13 @@ async function sendSquadCallEmail({
   // Check user's email preferences for squad calls
   const emailPrefs = user.emailPreferences;
   if (emailPrefs) {
-    // Check if user has disabled this specific squad call email type
-    if (jobType === 'email_24h' && emailPrefs.squadCall24h === false) {
-      console.log(`[SQUAD_CALL_EMAIL] Skipping ${jobType} - user ${userId} has disabled 24h squad call emails`);
+    // Check if user has disabled this specific circle call email type
+    if (jobType === 'email_24h' && emailPrefs.circleCall24h === false) {
+      console.log(`[SQUAD_CALL_EMAIL] Skipping ${jobType} - user ${userId} has disabled 24h group call emails`);
       return;
     }
-    if (jobType === 'email_1h' && emailPrefs.squadCall1h === false) {
-      console.log(`[SQUAD_CALL_EMAIL] Skipping ${jobType} - user ${userId} has disabled 1h squad call emails`);
+    if (jobType === 'email_1h' && emailPrefs.circleCall1h === false) {
+      console.log(`[SQUAD_CALL_EMAIL] Skipping ${jobType} - user ${userId} has disabled 1h group call emails`);
       return;
     }
   }
@@ -409,10 +409,10 @@ export async function executeSquadCallJob(job: SquadCallScheduledJob): Promise<{
 
   try {
     // Get all squad members
-    const memberIds = await getSquadMembers(job.squadId);
+    const memberIds = await getSquadMembers(job.circleId);
 
     if (memberIds.length === 0) {
-      console.log(`[SQUAD_CALL_JOBS] No members found for squad ${job.squadId}`);
+      console.log(`[SQUAD_CALL_JOBS] No members found for squad ${job.circleId}`);
       return stats;
     }
 
@@ -426,7 +426,7 @@ export async function executeSquadCallJob(job: SquadCallScheduledJob): Promise<{
           await sendSquadCallNotification({
             userId,
             jobType: job.jobType,
-            isPremium: job.isPremiumSquad,
+            isPremium: job.isPremiumCircle,
             callDateTime: job.callDateTime,
             callTimezone: job.callTimezone,
           });
@@ -434,7 +434,7 @@ export async function executeSquadCallJob(job: SquadCallScheduledJob): Promise<{
           await sendSquadCallEmail({
             userId,
             jobType: job.jobType,
-            isPremium: job.isPremiumSquad,
+            isPremium: job.isPremiumCircle,
             callDateTime: job.callDateTime,
             callTimezone: job.callTimezone,
           });
@@ -446,7 +446,7 @@ export async function executeSquadCallJob(job: SquadCallScheduledJob): Promise<{
       }
     }
 
-    console.log(`[SQUAD_CALL_JOBS] Executed ${job.jobType} for squad ${job.squadId}: ${stats.membersNotified} members notified`);
+    console.log(`[SQUAD_CALL_JOBS] Executed ${job.jobType} for squad ${job.circleId}: ${stats.membersNotified} members notified`);
   } catch (error) {
     console.error(`[SQUAD_CALL_JOBS] Error executing job ${job.id}:`, error);
     stats.success = false;
@@ -543,9 +543,9 @@ export async function processSquadCallScheduledJobs(): Promise<{
  * Validate that a job is still valid (call hasn't been rescheduled or canceled)
  */
 async function validateJobStillValid(job: SquadCallScheduledJob): Promise<boolean> {
-  if (job.isPremiumSquad) {
+  if (job.isPremiumCircle) {
     // For premium squads, check the squad document
-    const squadDoc = await adminDb.collection('squads').doc(job.squadId).get();
+    const squadDoc = await adminDb.collection('squads').doc(job.circleId).get();
     if (!squadDoc.exists) return false;
 
     const squadData = squadDoc.data();

@@ -43,6 +43,10 @@ export type OnboardingStatus =
 export type CurrentSituation = 'just_starting' | 'tried_before' | 'maintaining' | 'struggling' | 'fresh_start';
 export type GoalImpactLevel = 'transformational' | 'a_lot' | 'somewhat' | 'a_little';
 
+// Legacy types for backward compatibility with existing onboarding pages
+export type BusinessStage = 'just_starting' | 'building_momentum' | 'growing_steadily' | 'leveling_up' | 'reinventing';
+export type WorkdayStyle = 'chaotic' | 'busy' | 'productive' | 'disciplined';
+
 export type PeerAccountability = 
   | 'alone'
   | 'no_daily_system'
@@ -95,19 +99,21 @@ export interface CoachingInfo {
 export type WeightUnit = 'kg' | 'lbs';
 
 export interface WeightLossGoal {
-  id: string;
-  userId: string;
+  id?: string;
+  userId?: string;
+  title?: string; // User-entered goal description, e.g., "Lose 10 kg"
   startWeight?: number; // Starting weight when goal was set
   currentWeight?: number; // Most recent weight entry
-  targetWeight: number; // Goal weight
-  unit: WeightUnit; // kg or lbs
-  startDate: string; // ISO date when goal was set
-  targetDate: string; // ISO date for achieving goal
+  targetWeight?: number; // Goal weight
+  unit?: WeightUnit; // kg or lbs
+  startDate?: string; // ISO date when goal was set
+  targetDate?: string; // ISO date for achieving goal
   weeklyTargetLoss?: number; // Optional: target kg/lbs to lose per week
-  isActive: boolean;
-  progress: number; // 0-100 percentage towards goal
-  createdAt: string;
-  updatedAt: string;
+  isActive?: boolean;
+  status?: 'active' | 'completed' | 'archived' | 'paused'; // Goal status
+  progress?: number; // 0-100 percentage towards goal
+  createdAt?: string;
+  updatedAt?: string;
   completedAt?: string; // Set when goal is achieved
   archivedAt?: string; // Set when goal is archived
 }
@@ -216,6 +222,8 @@ export interface FirebaseUser extends ClerkUser {
   avatarUrl?: string; // Profile picture URL (overrides Clerk imageUrl if set)
   location?: string; // e.g., "Berlin, DE"
   profession?: string; // Job title/profession
+  company?: string; // Company/organization name
+  identity?: string; // User's self-identity statement (e.g., "I am a healthy, disciplined person")
   interests?: string; // Comma-separated or free text (fitness interests)
   instagramHandle?: string;
   linkedinHandle?: string;

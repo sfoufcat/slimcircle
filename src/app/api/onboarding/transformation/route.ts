@@ -27,22 +27,22 @@ export async function GET() {
     const userData = userDoc.data() as FirebaseUser;
     
     // Extract relevant data for transformation text
-    const businessStage = userData.onboarding?.businessStage;
+    const currentSituation = userData.onboarding?.currentSituation;
     const peerAccountability = userData.onboarding?.peerAccountability;
-    const goal = userData.goal;
-    const identity = userData.identity;
+    const goal = userData.weightGoal?.title;
+    const commitment = userData.commitment;
 
     // Generate the transformation text using AI
     const result = await generateTransformationText({
-      businessStage,
+      currentSituation,
       peerAccountability,
       goal,
-      identity,
+      commitment,
     });
 
     return NextResponse.json({
       text: result.text,
-      businessStage,
+      currentSituation,
       error: result.error,
     });
 

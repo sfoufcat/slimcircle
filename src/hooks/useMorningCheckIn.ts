@@ -197,7 +197,7 @@ export function useMorningCheckIn(): UseMorningCheckInReturn {
   // Get next step based on emotional state
   const getNextStep = useCallback((currentState: EmotionalState): CheckInStep => {
     if (shouldSkipReframe(currentState)) {
-      return 'manifest-identity';
+      return 'manifest-commitment';
     }
     return 'accept';
   }, [shouldSkipReframe]);

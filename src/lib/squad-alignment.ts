@@ -303,7 +303,7 @@ async function getOrComputeSquadAlignmentDay(
   
   if (totalMembers === 0) {
     const dayData: SquadAlignmentDay = {
-      squadId,
+      circleId: squadId,
       date,
       fractionFullyAligned: 0,
       numFullyAligned: 0,
@@ -332,7 +332,7 @@ async function getOrComputeSquadAlignmentDay(
   const kept = fractionFullyAligned >= 0.5;
   
   const dayData: SquadAlignmentDay = {
-    squadId,
+    circleId: squadId,
     date,
     fractionFullyAligned,
     numFullyAligned,
@@ -443,7 +443,7 @@ export async function getSquadStreak(
     summary = existingDoc.data() as SquadAlignmentSummary;
   } else {
     summary = {
-      squadId,
+      circleId: squadId,
       currentStreak: 0,
       updatedAt: now,
     };

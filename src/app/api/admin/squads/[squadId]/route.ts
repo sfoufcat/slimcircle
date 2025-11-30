@@ -91,9 +91,9 @@ export async function PATCH(
       if (existingMembership.empty) {
         // Coach is not a member yet, add them to squadMembers
         await adminDb.collection('squadMembers').add({
-          squadId,
+          circleId: squadId,
           userId: coachId,
-          roleInSquad: 'coach',
+          roleInCircle: 'coach',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });
@@ -108,10 +108,10 @@ export async function PATCH(
           });
         }
       } else {
-        // Coach is already a member, update their roleInSquad to 'coach'
+        // Coach is already a member, update their roleInCircle to 'coach'
         const memberDoc = existingMembership.docs[0];
         await memberDoc.ref.update({
-          roleInSquad: 'coach',
+          roleInCircle: 'coach',
           updatedAt: new Date().toISOString(),
         });
       }

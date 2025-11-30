@@ -32,13 +32,13 @@ export async function GET() {
 
     // Extract goal data from user document (goals are stored in the users collection)
     let activeGoal = null;
-    if (userData.goal && userData.goalTargetDate) {
+    if (userData.weightGoal?.title && userData.weightGoal?.targetDate) {
       // Use user-entered progress (stored as goalProgress), default to 0
       const progressPercentage = userData.goalProgress ?? 0;
 
       activeGoal = {
-        goal: userData.goal,
-        targetDate: userData.goalTargetDate,
+        goal: userData.weightGoal.title,
+        targetDate: userData.weightGoal.targetDate,
         progress: {
           percentage: progressPercentage,
         },

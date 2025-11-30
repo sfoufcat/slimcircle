@@ -8,8 +8,8 @@ const DEFAULT_EMAIL_PREFERENCES: EmailPreferences = {
   morningCheckIn: true,
   eveningCheckIn: true,
   weeklyReview: true,
-  squadCall24h: true,
-  squadCall1h: true,
+  circleCall24h: true,
+  circleCall1h: true,
 };
 
 /**
@@ -66,8 +66,8 @@ export async function PATCH(req: Request) {
       'morningCheckIn',
       'eveningCheckIn',
       'weeklyReview',
-      'squadCall24h',
-      'squadCall1h',
+      'circleCall24h',
+      'circleCall1h',
     ];
 
     const updates: Partial<EmailPreferences> = {};

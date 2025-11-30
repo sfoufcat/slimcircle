@@ -215,7 +215,7 @@ export async function POST(
       }
 
       const originalCall = originalCallDoc.data() as StandardSquadCall;
-      if (originalCall.squadId !== squadId) {
+      if (originalCall.circleId !== squadId) {
         return NextResponse.json({ error: 'Call does not belong to this squad' }, { status: 403 });
       }
 
@@ -230,14 +230,14 @@ export async function POST(
 
     // Create the call/proposal
     const callData: Omit<StandardSquadCall, 'id'> = {
-      squadId,
+      circleId: squadId,
       createdByUserId: userId,
       status: 'pending',
       proposalType,
       startDateTimeUtc: proposalType === 'delete' ? '' : dateTime,
       timezone: proposalType === 'delete' ? '' : timezone,
       location: proposalType === 'delete' ? '' : location,
-      title: title?.trim() || 'Squad accountability call',
+      title: title?.trim() || 'Group accountability call',
       // Use null instead of undefined for optional fields (Firestore compatibility)
       ...(originalCallId ? { originalCallId } : {}),
       yesCount: 1, // Creator automatically votes yes
@@ -255,7 +255,7 @@ export async function POST(
     const voteData: SquadCallVote = {
       id: `${callId}_${userId}`,
       callId,
-      squadId,
+      circleId: squadId,
       userId,
       vote: 'yes',
       createdAt: now,
@@ -361,7 +361,7 @@ export async function PUT(
     }
 
     // Verify call belongs to this squad
-    if (callData.squadId !== squadId) {
+    if (callData.circleId !== squadId) {
       return NextResponse.json({ error: 'Call does not belong to this squad' }, { status: 403 });
     }
 
@@ -406,7 +406,7 @@ export async function PUT(
     const voteData: SquadCallVote = {
       id: voteId,
       callId,
-      squadId,
+      circleId: squadId,
       userId,
       vote,
       createdAt: existingVoteDoc.exists 

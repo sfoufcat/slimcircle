@@ -178,9 +178,9 @@ export function SquadFormDialog({ squad, open, onClose, onSave }: SquadFormDialo
     // Optimistic update: immediately add to members list
     const optimisticMember: SquadMember = {
       id: `temp-${userId}`,
-      squadId: squad.id,
+      circleId: squad.id,
       userId: userId,
-      roleInSquad: 'member',
+      roleInCircle: 'member',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       // Include user details for display
@@ -198,7 +198,7 @@ export function SquadFormDialog({ squad, open, onClose, onSave }: SquadFormDialo
       const response = await fetch(`/api/admin/squads/${squad.id}/members`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, roleInSquad: 'member' }),
+        body: JSON.stringify({ userId, roleInCircle: 'member' }),
       });
 
       if (!response.ok) {

@@ -228,7 +228,7 @@ async function sendCoachingCallNotification({
 
   await notifyUser({
     userId,
-    type: 'squad_call_24h', // Reuse existing notification type
+    type: 'circle_call_24h', // Reuse existing notification type
     title,
     body,
     actionRoute: '/my-coach',
@@ -261,10 +261,10 @@ async function sendCoachingCallEmail({
   // Check user's email preferences
   const emailPrefs = user.emailPreferences;
   if (emailPrefs) {
-    if (jobType === 'email_24h' && emailPrefs.squadCall24h === false) {
+    if (jobType === 'email_24h' && emailPrefs.circleCall24h === false) {
       return;
     }
-    if (jobType === 'email_1h' && emailPrefs.squadCall1h === false) {
+    if (jobType === 'email_1h' && emailPrefs.circleCall1h === false) {
       return;
     }
   }

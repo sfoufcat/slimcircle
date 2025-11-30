@@ -31,7 +31,7 @@ export async function GET(
     const userData = userDoc.data();
 
     // Check if user has an active goal
-    const hasActiveGoal = !!(userData?.goal && !userData?.goalCompleted);
+    const hasActiveGoal = !!(userData?.weightGoal?.title && !userData?.goalCompleted);
     
     // Fetch today's focus tasks
     const isOwnProfile = currentUserId === targetUserId;
@@ -97,8 +97,8 @@ export async function GET(
       hasWeekClosed,
       goal: hasActiveGoal
         ? {
-            title: userData?.goal || '',
-            targetDate: userData?.goalTargetDate || '',
+            title: userData?.weightGoal?.title || '',
+            targetDate: userData?.weightGoal?.targetDate || '',
             progress: userData?.goalProgress || 0,
           }
         : null,

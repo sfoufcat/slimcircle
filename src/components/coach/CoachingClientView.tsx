@@ -564,12 +564,12 @@ export function CoachingClientView({ clientId, onBack }: CoachingClientViewProps
             )}
             
             {/* Client's Goal */}
-            {user?.goal && (
+            {user?.weightGoal?.title && (
               <div className="mt-3 p-3 bg-[#faf8f6] dark:bg-[#11141b] rounded-xl">
                 <p className="font-albert text-xs text-[#8c8c8c] dark:text-[#7d8190] uppercase tracking-wider mb-1">
                   Current Goal
                 </p>
-                <p className="font-albert text-[14px] text-[#1a1a1a] dark:text-[#f5f5f8]">{user.goal}</p>
+                <p className="font-albert text-[14px] text-[#1a1a1a] dark:text-[#f5f5f8]">{user.weightGoal.title}</p>
                 {user.goalProgress !== undefined && (
                   <div className="mt-2 flex items-center gap-2">
                     <div className="flex-1 h-2 bg-[#e1ddd8] rounded-full overflow-hidden">

@@ -75,7 +75,7 @@ export default function TransformationPage() {
         setTransformationText(transformData.text);
 
         // Fetch both summaries if goal or businessStage exists
-        const goal = userData?.user?.goal || userData?.goal?.goal;
+        const goal = userData?.user?.weightGoal?.title || userData?.goal?.goal;
         const businessStage = userData?.user?.onboarding?.businessStage;
         
         // Only fetch if we have actual data to summarize
@@ -152,8 +152,8 @@ export default function TransformationPage() {
   }
 
   // Extract goal data
-  const goalText = userData?.user?.goal || userData?.goal?.goal || 'achieve your goal';
-  const goalTargetDate = userData?.user?.goalTargetDate || userData?.goal?.targetDate;
+  const goalText = userData?.user?.weightGoal?.title || userData?.goal?.goal || 'achieve your goal';
+  const goalTargetDate = userData?.user?.weightGoal?.targetDate || userData?.goal?.targetDate;
   
   // Calculate months until goal
   const monthsUntilGoal = goalTargetDate 

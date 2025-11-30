@@ -137,7 +137,7 @@ export async function POST(req: Request) {
     await adminDb.collection('squadMembers').add({
       squadId,
       userId,
-      roleInSquad: 'member',
+      roleInCircle: 'member',
       firstName: clerkUser.firstName || '',
       lastName: clerkUser.lastName || '',
       imageUrl: clerkUser.imageUrl || '',

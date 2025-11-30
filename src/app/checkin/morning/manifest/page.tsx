@@ -136,10 +136,10 @@ export default function ManifestPage() {
             goal: data.goal.goal,
             targetDate: data.goal.targetDate,
           });
-        } else if (data.user?.goal) {
+        } else if (data.user?.weightGoal?.title) {
           setGoal({
-            goal: data.user.goal,
-            targetDate: data.user.goalTargetDate || '',
+            goal: data.user.weightGoal.title,
+            targetDate: data.user.weightGoal.targetDate || '',
           });
         }
       } catch (error) {

@@ -75,7 +75,7 @@ export default function SquadPage() {
   // Find coach info from members for premium squads
   const coachInfo: CoachInfo | undefined = useMemo(() => {
     if (!squad?.isPremium || !members.length) return undefined;
-    const coach = members.find(m => m.roleInSquad === 'coach');
+    const coach = members.find(m => m.roleInCircle === 'coach');
     if (!coach) return undefined;
     return {
       firstName: coach.firstName,

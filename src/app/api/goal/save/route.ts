@@ -40,11 +40,11 @@ export async function POST(req: Request) {
 
     // Build goal history
     const goalHistory = existingData.goalHistory || [];
-    if (existingData.goal) {
+    if (existingData.weightGoal?.title) {
       // Add previous goal to history
       goalHistory.push({
-        goal: existingData.goal,
-        targetDate: existingData.goalTargetDate,
+        goal: existingData.weightGoal.title,
+        targetDate: existingData.weightGoal.targetDate,
         setAt: existingData.goalSetAt || now,
         completedAt: null,
       });
@@ -53,8 +53,13 @@ export async function POST(req: Request) {
     // Update user document with new goal and advance onboarding status
     await userRef.set(
       {
-        goal: trimmedGoal,
-        goalTargetDate: targetDate,
+        weightGoal: {
+          title: trimmedGoal,
+          targetDate: targetDate,
+          status: 'active',
+          createdAt: now,
+          updatedAt: now,
+        },
         goalSetAt: now,
         goalIsAISuggested: isAISuggested || false,
         goalHistory: goalHistory,

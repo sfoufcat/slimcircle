@@ -149,7 +149,7 @@ export function AdminUsersWithoutSquadTab({ currentUserRole }: AdminUsersWithout
       const response = await fetch(`/api/admin/squads/${squadId}/members`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, roleInSquad: 'member' }),
+        body: JSON.stringify({ userId, roleInCircle: 'member' }),
       });
 
       if (!response.ok) {

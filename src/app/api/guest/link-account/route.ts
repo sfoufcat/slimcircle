@@ -109,6 +109,7 @@ export async function POST(req: Request) {
 
     // Build user document from guest data
     const plan = guestData.selectedPlan || 'standard';
+    const now = new Date().toISOString();
     const userDocument = {
       // Basic info
       id: userId,
@@ -116,10 +117,15 @@ export async function POST(req: Request) {
       firstName: guestData.firstName || '',
       lastName: guestData.lastName || '',
       
-      // Mission & Goal
-      mission: guestData.mission || '',
-      goal: guestData.goal || '',
-      goalTargetDate: guestData.goalTargetDate || null,
+      // Identity & Goal
+      identity: guestData.identity || guestData.mission || '',
+      weightGoal: guestData.goal ? {
+        title: guestData.goal,
+        targetDate: guestData.goalTargetDate || null,
+        status: 'active',
+        createdAt: now,
+        updatedAt: now,
+      } : null,
       
       // Onboarding quiz answers
       onboarding: {

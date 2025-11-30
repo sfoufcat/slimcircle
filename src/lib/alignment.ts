@@ -89,9 +89,9 @@ async function checkUserHasActiveGoal(userId: string): Promise<boolean> {
     if (!userDoc.exists) return false;
     
     const userData = userDoc.data();
-    // User has an active goal if they have a goal and goalTargetDate set
+    // User has an active goal if they have a weightGoal with title and targetDate set
     // and the goal hasn't been completed or archived
-    return !!(userData?.goal && userData?.goalTargetDate && !userData?.goalCompleted);
+    return !!(userData?.weightGoal?.title && userData?.weightGoal?.targetDate && !userData?.goalCompleted);
   } catch (error) {
     console.error('[ALIGNMENT] Error checking active goal:', error);
     return false;

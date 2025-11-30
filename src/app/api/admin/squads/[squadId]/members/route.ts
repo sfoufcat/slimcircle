@@ -92,7 +92,7 @@ export async function POST(
     await requireAdmin();
     const { squadId } = await context.params;
     const body = await req.json();
-    const { userId, roleInSquad = 'member' } = body as { userId: string; roleInSquad?: SquadRoleInSquad };
+    const { userId, roleInCircle = 'member' } = body as { userId: string; roleInCircle?: SquadRoleInSquad };
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -129,9 +129,9 @@ export async function POST(
 
     // Create the membership
     const memberData = {
-      squadId,
+      circleId: squadId,
       userId,
-      roleInSquad,
+      roleInCircle,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -139,7 +139,7 @@ export async function POST(
     const memberRef = await adminDb.collection('squadMembers').add(memberData);
 
     // If adding as coach, update the squad's coachId
-    if (roleInSquad === 'coach') {
+    if (roleInCircle === 'coach') {
       await adminDb.collection('squads').doc(squadId).update({
         coachId: userId,
         updatedAt: new Date().toISOString(),

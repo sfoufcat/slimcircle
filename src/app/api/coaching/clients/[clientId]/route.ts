@@ -61,8 +61,7 @@ export async function GET(
         email: userData.email,
         imageUrl: userData.imageUrl,
         timezone: userData.timezone,
-        goal: userData.goal,
-        goalTargetDate: userData.goalTargetDate,
+        weightGoal: userData.weightGoal,
         goalProgress: userData.goalProgress,
       };
     }

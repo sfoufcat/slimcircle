@@ -16,8 +16,8 @@ const DEFAULT_EMAIL_PREFERENCES: EmailPreferences = {
   morningCheckIn: true,
   eveningCheckIn: true,
   weeklyReview: true,
-  squadCall24h: true,
-  squadCall1h: true,
+  circleCall24h: true,
+  circleCall1h: true,
 };
 
 export function SettingsDrawer({ 
@@ -230,8 +230,8 @@ export function SettingsDrawer({
                           <PreferenceRow label="Morning check-in" prefKey="morningCheckIn" />
                           <PreferenceRow label="Evening check-in" prefKey="eveningCheckIn" />
                           <PreferenceRow label="Weekly review" prefKey="weeklyReview" />
-                          <PreferenceRow label="Squad call (24h before)" prefKey="squadCall24h" />
-                          <PreferenceRow label="Squad call (1h before)" prefKey="squadCall1h" />
+                          <PreferenceRow label="Group call (24h before)" prefKey="circleCall24h" />
+                          <PreferenceRow label="Group call (1h before)" prefKey="circleCall1h" />
                         </div>
                       </div>
 

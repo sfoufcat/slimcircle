@@ -33,7 +33,7 @@ export async function GET(req: Request) {
     
     // For now, we use the user's goal directly. GoalId is the same as the goal string for simplicity.
     // In a more complex system, goals would have their own IDs.
-    const goalId = userData?.goal ? `${userId}_goal` : null;
+    const goalId = userData?.weightGoal?.title ? `${userId}_goal` : null;
     
     if (!goalId) {
       return NextResponse.json({ reflections: [] });
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
     }
 
     const userData = userDoc.data();
-    const goalId = userData?.goal ? `${userId}_goal` : null;
+    const goalId = userData?.weightGoal?.title ? `${userId}_goal` : null;
 
     if (!goalId) {
       return NextResponse.json(
