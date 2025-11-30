@@ -50,9 +50,9 @@ export async function GET(
 
       members.push({
         id: doc.id,
-        squadId: memberData.squadId,
+        circleId: memberData.squadId || memberData.circleId,
         userId: memberData.userId,
-        roleInSquad: memberData.roleInSquad || 'member',
+        roleInCircle: memberData.roleInSquad || memberData.roleInCircle || 'member',
         firstName,
         lastName,
         imageUrl,
