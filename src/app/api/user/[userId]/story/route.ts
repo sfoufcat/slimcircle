@@ -50,6 +50,41 @@ export async function GET(
 
     const hasTasksToday = tasks.length > 0;
 
+    // Fetch today's intake entries
+    const intakeQuery = adminDb
+      .collection('intakeEntries')
+      .where('userId', '==', targetUserId)
+      .where('date', '==', date);
+    
+    const intakeSnapshot = await intakeQuery.get();
+    const intakeEntries = intakeSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    // Fetch today's activity entries
+    const activityQuery = adminDb
+      .collection('activityEntries')
+      .where('userId', '==', targetUserId)
+      .where('date', '==', date);
+    
+    const activitySnapshot = await activityQuery.get();
+    const activityEntries = activitySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    const hasIntakeToday = intakeEntries.length > 0;
+    const hasActivityToday = activityEntries.length > 0;
+
+    // Calculate calorie totals
+    const totalConsumedCalories = intakeEntries.reduce((sum: number, entry: any) => 
+      sum + (entry.totalCalories || 0), 0
+    );
+    const totalBurnedCalories = activityEntries.reduce((sum: number, entry: any) => 
+      sum + (entry.caloriesBurned || 0), 0
+    );
+
     // Check if evening check-in is completed for today
     const eveningCheckInRef = adminDb
       .collection('users')
@@ -93,15 +128,20 @@ export async function GET(
     const response = {
       hasActiveGoal,
       hasTasksToday,
+      hasIntakeToday,
+      hasActivityToday,
       hasDayClosed,
       hasWeekClosed,
       goal: hasActiveGoal
         ? {
             title: userData?.weightGoal?.title || '',
             targetDate: userData?.weightGoal?.targetDate || '',
+            targetWeight: userData?.weightGoal?.targetWeight || null,
+            currentWeight: userData?.weightGoal?.currentWeight || userData?.currentWeight || null,
             progress: userData?.goalProgress || 0,
           }
         : null,
+      // Legacy tasks (kept for backward compatibility)
       tasks: tasks.map(task => {
         const taskData = task as { title?: string; status?: string; isPrivate?: boolean };
         const isPrivate = taskData.isPrivate || false;
@@ -121,6 +161,37 @@ export async function GET(
           isPrivate,
         };
       }),
+      // Daily Intake entries
+      intakeEntries: intakeEntries.map((entry: any) => {
+        const isPrivate = entry.isPrivate || false;
+        return {
+          id: entry.id,
+          mealName: (!isOwnProfile && isPrivate) ? 'Private meal' : (entry.mealName || ''),
+          mealType: entry.mealType,
+          totalCalories: entry.totalCalories || 0,
+          ingredientCount: entry.ingredients?.length || 0,
+          isPrivate,
+        };
+      }),
+      // Daily Activity entries
+      activityEntries: activityEntries.map((entry: any) => {
+        const isPrivate = entry.isPrivate || false;
+        return {
+          id: entry.id,
+          activityName: (!isOwnProfile && isPrivate) ? 'Private activity' : (entry.activityName || ''),
+          activityType: entry.activityType,
+          durationMinutes: entry.durationMinutes || 0,
+          caloriesBurned: entry.caloriesBurned || 0,
+          isPrivate,
+        };
+      }),
+      // Calorie summary
+      calorieSummary: {
+        targetCalories: userData?.weightLossProfile?.dailyCalorieTarget || 2000,
+        consumedCalories: totalConsumedCalories,
+        burnedCalories: totalBurnedCalories,
+        netCalories: totalConsumedCalories - totalBurnedCalories,
+      },
       eveningCheckIn: hasDayClosed ? {
         emotionalState: eveningCheckInData?.emotionalState || 'steady',
         tasksCompleted: eveningCheckInData?.tasksCompleted || 0,

@@ -97,9 +97,9 @@ export default function StartPage() {
     setIsNavigating(true);
     
     // Save current step to guest session
-    await saveData({ currentStep: 'workday' });
+    await saveData({ currentStep: 'physical_profile' });
     
-    router.push('/start/workday');
+    router.push('/start/physical-profile');
   };
 
   if (isLoading) {

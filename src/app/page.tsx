@@ -8,8 +8,12 @@ import { useHabits } from '@/hooks/useHabits';
 import { useAlignment } from '@/hooks/useAlignment';
 import { useCurrentUserStoryAvailability } from '@/hooks/useUserStoryAvailability';
 import { useStoryViewTracking, useStoryViewStatus } from '@/hooks/useStoryViewTracking';
+import { useCalorieData } from '@/hooks/useCalorieData';
 import { HabitCheckInModal } from '@/components/habits/HabitCheckInModal';
 import { DailyFocusSection } from '@/components/tasks/DailyFocusSection';
+import { DailyIntakeSection } from '@/components/intake';
+import { DailyActivitySection } from '@/components/activity';
+import { CalorieSummaryCard } from '@/components/calories';
 import { StoryAvatar } from '@/components/stories/StoryAvatar';
 import { AlignmentGauge } from '@/components/alignment';
 import { NotificationBell } from '@/components/notifications';
@@ -118,6 +122,9 @@ export default function Dashboard() {
   
   // Integrate squad context for My Circle section
   const { squad, members, isLoading: squadLoading } = useSquadContext();
+  
+  // Calorie data for today
+  const { summary: calorieSummary, isLoading: calorieLoading, refetch: refetchCalories } = useCalorieData();
   
   // Story availability for current user
   const storyAvailability = useCurrentUserStoryAvailability();
@@ -1315,10 +1322,39 @@ export default function Dashboard() {
           </div>
         </div>
       ) : (
-        <DailyFocusSection 
-          isDayClosed={isEveningCheckInCompleted} 
-          onTasksChange={storyAvailability.refetch}
-        />
+        <>
+          {/* CALORIE SUMMARY CARD */}
+          {calorieSummary && (
+            <CalorieSummaryCard
+              targetCalories={calorieSummary.targetCalories}
+              consumedCalories={calorieSummary.consumedCalories}
+              burnedCalories={calorieSummary.burnedCalories}
+              className="mb-6"
+            />
+          )}
+
+          {/* DAILY INTAKE SECTION */}
+          <DailyIntakeSection 
+            onEntriesChange={() => {
+              storyAvailability.refetch();
+              refetchCalories();
+            }}
+          />
+
+          {/* DAILY ACTIVITY SECTION */}
+          <DailyActivitySection 
+            onEntriesChange={() => {
+              storyAvailability.refetch();
+              refetchCalories();
+            }}
+          />
+
+          {/* Legacy Daily Focus (hidden, kept for backward compatibility) */}
+          {/* <DailyFocusSection 
+            isDayClosed={isEveningCheckInCompleted} 
+            onTasksChange={storyAvailability.refetch}
+          /> */}
+        </>
       )}
 
       {/* HABITS SECTION */}

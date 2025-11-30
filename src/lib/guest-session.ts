@@ -97,7 +97,26 @@ export function clearGuestSession(): void {
  * Guest onboarding data structure
  */
 export interface GuestOnboardingData {
-  // Quiz answers
+  // Weight Loss Physical Profile
+  age?: number;
+  sex?: 'male' | 'female';
+  heightCm?: number;
+  weightKg?: number;
+  activityLevel?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
+  
+  // Weight Loss Goal
+  currentWeight?: number; // Same as weightKg, for clarity
+  goalWeight?: number; // Target weight in kg
+  targetDate?: string; // ISO date for reaching goal
+  
+  // Calculated values (stored after profile completion)
+  bmi?: number;
+  bmr?: number;
+  tdee?: number;
+  dailyCalorieTarget?: number;
+  targetDailyDeficit?: number;
+  
+  // Legacy quiz answers (kept for backward compatibility)
   workdayStyle?: 'chaotic' | 'busy' | 'productive' | 'disciplined';
   peerAccountability?: string;
   businessStage?: string;
@@ -108,7 +127,7 @@ export interface GuestOnboardingData {
   accountability?: boolean;
   readyToInvest?: boolean;
   
-  // Mission & Goal
+  // Mission & Goal (legacy, kept for backward compatibility)
   mission?: string;
   goal?: string;
   goalTargetDate?: string;

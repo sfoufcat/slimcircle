@@ -55,6 +55,12 @@ export default function BeginPage() {
           const status = data.user?.onboardingStatus;
           if (!status || status === 'welcome') {
             router.push('/onboarding/welcome');
+          } else if (status === 'physical_profile') {
+            router.push('/onboarding/physical-profile');
+          } else if (status === 'activity_level') {
+            router.push('/onboarding/activity-level');
+          } else if (status === 'weight_goal') {
+            router.push('/onboarding/weight-goal');
           } else if (status === 'workday') {
             router.push('/onboarding/workday');
           } else if (status === 'obstacles') {

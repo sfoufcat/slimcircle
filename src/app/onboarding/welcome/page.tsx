@@ -103,13 +103,13 @@ export default function OnboardingWelcomePage() {
       await fetch('/api/user/me', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ onboardingStatus: 'workday' }),
+        body: JSON.stringify({ onboardingStatus: 'physical_profile' }),
       });
     } catch (error) {
       console.error('Failed to update onboarding status:', error);
     }
     
-    router.push('/onboarding/workday');
+    router.push('/onboarding/physical-profile');
   };
 
   if (!isLoaded || !user) {

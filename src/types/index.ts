@@ -26,6 +26,8 @@ export type CoachingPlan = 'monthly' | 'quarterly' | null;
 // Onboarding Status Types
 export type OnboardingStatus = 
   | 'welcome' 
+  | 'physical_profile'  // Age, sex, height, weight
+  | 'activity_level'    // Activity level selection
   | 'current_situation'
   | 'obstacles'
   | 'goal_setting'
@@ -93,10 +95,29 @@ export interface CoachingInfo {
 }
 
 // ============================================================================
-// WEIGHT LOSS GOAL TYPES
+// WEIGHT LOSS PROFILE & GOAL TYPES
 // ============================================================================
 
 export type WeightUnit = 'kg' | 'lbs';
+export type Sex = 'male' | 'female';
+export type BodyType = 'slim' | 'average' | 'overweight' | 'obese';
+export type ActivityLevel = 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
+
+// User's physical profile for calorie calculations
+export interface WeightLossProfile {
+  age?: number; // User's age in years
+  sex?: Sex; // For BMR calculations
+  heightCm?: number; // Height in centimeters
+  weightKg?: number; // Current weight in kilograms (canonical)
+  bodyType?: BodyType; // Optional body type classification
+  activityLevel?: ActivityLevel; // For TDEE calculations
+  // Calculated values (stored for quick access)
+  bmi?: number; // Body Mass Index
+  bmr?: number; // Basal Metabolic Rate
+  tdee?: number; // Total Daily Energy Expenditure
+  dailyCalorieTarget?: number; // Target calories per day
+  targetDailyDeficit?: number; // Calorie deficit needed per day
+}
 
 export interface WeightLossGoal {
   id?: string;
@@ -116,6 +137,85 @@ export interface WeightLossGoal {
   updatedAt?: string;
   completedAt?: string; // Set when goal is achieved
   archivedAt?: string; // Set when goal is archived
+}
+
+// ============================================================================
+// DAILY INTAKE & ACTIVITY TYPES
+// ============================================================================
+
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export type ActivityType = 
+  | 'walking' 
+  | 'running' 
+  | 'cycling' 
+  | 'swimming' 
+  | 'strength_training' 
+  | 'pilates' 
+  | 'yoga' 
+  | 'hiit' 
+  | 'dancing'
+  | 'hiking'
+  | 'sports'
+  | 'other';
+
+// Ingredient in a meal
+export interface MealIngredient {
+  id: string;
+  name: string;
+  grams: number; // Amount in grams
+  caloriesPer100g: number; // Calorie density
+  calories: number; // Computed: (grams / 100) * caloriesPer100g
+}
+
+// Saved meal template for quick re-use
+export interface SavedMeal {
+  id: string;
+  userId: string;
+  name: string; // e.g., "My usual breakfast"
+  ingredients: MealIngredient[];
+  totalCalories: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Daily intake entry (a meal logged for the day)
+export interface DailyIntakeEntry {
+  id: string;
+  userId: string;
+  groupId?: string; // For circle visibility
+  date: string; // YYYY-MM-DD
+  mealName: string; // e.g., "Breakfast", "Lunch", custom name
+  mealType?: MealType;
+  ingredients: MealIngredient[];
+  totalCalories: number;
+  isPrivate: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Daily activity entry (exercise logged for the day)
+export interface DailyActivityEntry {
+  id: string;
+  userId: string;
+  groupId?: string; // For circle visibility
+  date: string; // YYYY-MM-DD
+  activityType: ActivityType;
+  activityName: string; // Display name, e.g., "Running", "Morning Walk"
+  durationMinutes: number;
+  caloriesBurned: number; // Computed from calculator
+  isPrivate: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Daily calorie summary
+export interface DailyCalorieSummary {
+  date: string;
+  targetCalories: number;
+  consumedCalories: number; // Sum of intake entries
+  burnedCalories: number; // Sum of activity entries
+  netCalories: number; // consumed - burned
+  deficitVsTarget: number; // targetCalories - netCalories
 }
 
 // ============================================================================
@@ -178,6 +278,9 @@ export interface FirebaseUser extends ClerkUser {
   commitment?: string; // Health commitment statement
   commitmentSetAt?: string;
   commitmentHistory?: CommitmentHistoryEntry[];
+  
+  // Weight Loss Profile (physical stats for calorie calculations)
+  weightLossProfile?: WeightLossProfile;
   
   // Weight Loss Goal fields
   weightGoal?: WeightLossGoal;
@@ -366,6 +469,55 @@ export interface GoalSaveResponse {
   targetDate: string;
   targetWeight?: number;
   setAt: string;
+}
+
+// Daily Intake API Types
+export interface CreateIntakeRequest {
+  date: string; // YYYY-MM-DD
+  mealName: string;
+  mealType?: MealType;
+  ingredients: Omit<MealIngredient, 'id' | 'calories'>[];
+  isPrivate?: boolean;
+  savedMealId?: string; // If using a saved meal template
+}
+
+export interface UpdateIntakeRequest {
+  mealName?: string;
+  mealType?: MealType;
+  ingredients?: Omit<MealIngredient, 'id' | 'calories'>[];
+  isPrivate?: boolean;
+}
+
+// Daily Activity API Types
+export interface CreateActivityRequest {
+  date: string; // YYYY-MM-DD
+  activityType: ActivityType;
+  activityName?: string; // Optional custom name
+  durationMinutes: number;
+  isPrivate?: boolean;
+}
+
+export interface UpdateActivityRequest {
+  activityType?: ActivityType;
+  activityName?: string;
+  durationMinutes?: number;
+  isPrivate?: boolean;
+}
+
+// Saved Meal API Types
+export interface CreateSavedMealRequest {
+  name: string;
+  ingredients: Omit<MealIngredient, 'id' | 'calories'>[];
+}
+
+// Weight Loss Profile API Types
+export interface UpdateWeightLossProfileRequest {
+  age?: number;
+  sex?: Sex;
+  heightCm?: number;
+  weightKg?: number;
+  bodyType?: BodyType;
+  activityLevel?: ActivityLevel;
 }
 
 // Task Types (repurposed for health actions/logs)

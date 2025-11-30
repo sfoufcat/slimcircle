@@ -90,6 +90,12 @@ export async function PATCH(req: Request) {
       'onboarding', // Quiz answers from onboarding flow
       'billing', // Stripe billing information
       'timezone', // IANA timezone for notification scheduling (auto-detected from browser)
+      // Weight loss profile fields
+      'weightLossProfile', // Physical stats for calorie calculations (age, sex, height, weight, etc.)
+      'weightGoal', // Weight loss goal (target weight, target date, etc.)
+      'currentWeight', // Current weight in kg
+      'goalSetAt', // When the goal was set
+      'goalProgress', // Progress percentage towards goal
     ];
 
     // Filter only allowed fields from the request
@@ -103,9 +109,12 @@ export async function PATCH(req: Request) {
     // Always update the updatedAt timestamp
     updateData.updatedAt = new Date().toISOString();
 
-    // Track quiz start when user enters the quiz flow (workday is first quiz question)
+    // Track quiz start when user enters the quiz flow
     // Only set if not already set to avoid overwriting on subsequent visits
-    const quizStartStatuses = ['workday', 'obstacles', 'business_stage', 'goal_impact', 'support_needs'];
+    const quizStartStatuses = [
+      'physical_profile', 'activity_level', 'weight_goal', // New weight loss flow
+      'workday', 'obstacles', 'business_stage', 'goal_impact', 'support_needs', // Legacy flow
+    ];
     if (body.onboardingStatus && quizStartStatuses.includes(body.onboardingStatus)) {
       // Check if quizStarted is already set
       const userRef = adminDb.collection('users').doc(userId);
