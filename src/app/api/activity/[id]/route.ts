@@ -25,13 +25,14 @@ export async function GET(
       return NextResponse.json({ error: 'Activity entry not found' }, { status: 404 });
     }
 
-    const entry = { id: doc.id, ...doc.data() };
+    const entryData = doc.data();
 
     // Verify ownership
-    if (entry.userId !== userId) {
+    if (entryData?.userId !== userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    const entry = { id: doc.id, ...entryData };
     return NextResponse.json({ entry });
   } catch (error) {
     console.error('Error fetching activity entry:', error);
