@@ -1,35 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Trash2, Calculator } from 'lucide-react';
+import { X, Plus, Trash2, Calculator, Search, Loader2, Database } from 'lucide-react';
 import type { MealType } from '@/types';
 import { calculateMealCalories } from '@/hooks/useIntake';
-
-// Common foods with calorie densities for quick selection
-const COMMON_FOODS = [
-  { name: 'Chicken Breast', caloriesPer100g: 165 },
-  { name: 'Rice (cooked)', caloriesPer100g: 130 },
-  { name: 'Pasta (cooked)', caloriesPer100g: 131 },
-  { name: 'Eggs', caloriesPer100g: 155 },
-  { name: 'Salmon', caloriesPer100g: 208 },
-  { name: 'Broccoli', caloriesPer100g: 34 },
-  { name: 'Banana', caloriesPer100g: 89 },
-  { name: 'Apple', caloriesPer100g: 52 },
-  { name: 'Avocado', caloriesPer100g: 160 },
-  { name: 'Bread (whole wheat)', caloriesPer100g: 247 },
-  { name: 'Milk (whole)', caloriesPer100g: 61 },
-  { name: 'Cheese (cheddar)', caloriesPer100g: 403 },
-  { name: 'Yogurt (plain)', caloriesPer100g: 59 },
-  { name: 'Beef (ground)', caloriesPer100g: 250 },
-  { name: 'Olive Oil', caloriesPer100g: 884 },
-];
+import { useFoodSearch } from '@/hooks/useFoodSearch';
+import type { FoodSearchResult } from '@/lib/food-search';
 
 const MEAL_TYPES: { value: MealType; label: string; emoji: string }[] = [
   { value: 'breakfast', label: 'Breakfast', emoji: '🍳' },
   { value: 'lunch', label: 'Lunch', emoji: '🥗' },
   { value: 'dinner', label: 'Dinner', emoji: '🍽️' },
   { value: 'snack', label: 'Snack', emoji: '🍎' },
+];
+
+// Fallback common foods when API is unavailable
+const FALLBACK_FOODS = [
+  { name: 'Chicken Breast', caloriesPer100g: 165 },
+  { name: 'Rice (cooked)', caloriesPer100g: 130 },
+  { name: 'Eggs', caloriesPer100g: 155 },
+  { name: 'Salmon', caloriesPer100g: 208 },
+  { name: 'Broccoli', caloriesPer100g: 34 },
+  { name: 'Banana', caloriesPer100g: 89 },
+  { name: 'Apple', caloriesPer100g: 52 },
+  { name: 'Bread (whole wheat)', caloriesPer100g: 247 },
 ];
 
 interface Ingredient {
@@ -60,9 +55,42 @@ export function AddMealSheet({ isOpen, onClose, onSave }: AddMealSheetProps) {
   const [newIngName, setNewIngName] = useState('');
   const [newIngGrams, setNewIngGrams] = useState('');
   const [newIngCalories, setNewIngCalories] = useState('');
-  const [showCommonFoods, setShowCommonFoods] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [manualMode, setManualMode] = useState(false);
+  
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Food search hook
+  const { results: searchResults, isLoading: searchLoading, search, clearResults } = useFoodSearch({
+    debounceMs: 300,
+    minQueryLength: 2,
+    limit: 12,
+  });
 
   const totalCalories = calculateMealCalories(ingredients);
+
+  // Handle clicks outside dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Search when ingredient name changes
+  useEffect(() => {
+    if (newIngName.length >= 2 && !manualMode) {
+      search(newIngName);
+      setShowDropdown(true);
+    } else {
+      clearResults();
+      setShowDropdown(false);
+    }
+  }, [newIngName, manualMode, search, clearResults]);
 
   const handleAddIngredient = () => {
     if (!newIngName || !newIngGrams || !newIngCalories) return;
@@ -80,13 +108,22 @@ export function AddMealSheet({ isOpen, onClose, onSave }: AddMealSheetProps) {
     setNewIngName('');
     setNewIngGrams('');
     setNewIngCalories('');
-    setShowCommonFoods(false);
+    setShowDropdown(false);
+    setManualMode(false);
+    clearResults();
   };
 
-  const handleSelectCommonFood = (food: { name: string; caloriesPer100g: number }) => {
+  const handleSelectFood = (food: FoodSearchResult | { name: string; caloriesPer100g: number }) => {
     setNewIngName(food.name);
     setNewIngCalories(food.caloriesPer100g.toString());
-    setShowCommonFoods(false);
+    setShowDropdown(false);
+    setManualMode(false);
+    clearResults();
+    // Focus on grams input after selection
+    setTimeout(() => {
+      const gramsInput = document.querySelector('input[placeholder="Amount"]') as HTMLInputElement;
+      gramsInput?.focus();
+    }, 50);
   };
 
   const handleRemoveIngredient = (index: number) => {
@@ -110,6 +147,9 @@ export function AddMealSheet({ isOpen, onClose, onSave }: AddMealSheetProps) {
       setMealType('lunch');
       setIngredients([]);
       setIsPrivate(false);
+      setNewIngName('');
+      setNewIngGrams('');
+      setNewIngCalories('');
     }
     setIsSaving(false);
   };
@@ -119,6 +159,13 @@ export function AddMealSheet({ isOpen, onClose, onSave }: AddMealSheetProps) {
       onClose();
     }
   };
+
+  // Determine what to show in dropdown
+  const showSearchResults = searchResults.length > 0;
+  const showFallback = !showSearchResults && newIngName.length >= 2 && !searchLoading;
+  const filteredFallback = FALLBACK_FOODS.filter(f => 
+    f.name.toLowerCase().includes(newIngName.toLowerCase())
+  );
 
   return (
     <AnimatePresence>
@@ -142,7 +189,7 @@ export function AddMealSheet({ isOpen, onClose, onSave }: AddMealSheetProps) {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
             {/* Handle */}
-            <div className="sticky top-0 bg-white dark:bg-[#171b22] pt-3 pb-2 px-6 border-b border-[#e1ddd8] dark:border-[#262b35]">
+            <div className="sticky top-0 bg-white dark:bg-[#171b22] pt-3 pb-2 px-6 border-b border-[#e1ddd8] dark:border-[#262b35] z-10">
               <div className="w-10 h-1 bg-[#e1ddd8] dark:bg-[#3d4654] rounded-full mx-auto mb-4" />
               <div className="flex items-center justify-between">
                 <h2 className="font-albert text-[24px] font-semibold text-text-primary dark:text-[#f5f5f8] tracking-[-1px]">
@@ -238,39 +285,140 @@ export function AddMealSheet({ isOpen, onClose, onSave }: AddMealSheetProps) {
 
                 {/* Add ingredient form */}
                 <div className="space-y-3 p-4 bg-[#faf8f6] dark:bg-[#11141b] rounded-[14px] border border-[#e1ddd8] dark:border-[#262b35]">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={newIngName}
-                      onChange={(e) => setNewIngName(e.target.value)}
-                      onFocus={() => setShowCommonFoods(true)}
-                      placeholder="Ingredient name"
-                      className="w-full py-2.5 px-3 rounded-[10px] border border-[#e1ddd8] dark:border-[#3d4654] bg-white dark:bg-[#1f242d] font-sans text-[14px] text-text-primary dark:text-[#f5f5f8] placeholder:text-text-muted focus:border-[#a07855] focus:outline-none transition-colors"
-                    />
+                  {/* Food search input */}
+                  <div className="relative" ref={dropdownRef}>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        value={newIngName}
+                        onChange={(e) => {
+                          setNewIngName(e.target.value);
+                          setManualMode(false);
+                        }}
+                        onFocus={() => {
+                          if (newIngName.length >= 2) setShowDropdown(true);
+                        }}
+                        placeholder="Search food database..."
+                        className="w-full py-2.5 pl-9 pr-3 rounded-[10px] border border-[#e1ddd8] dark:border-[#3d4654] bg-white dark:bg-[#1f242d] font-sans text-[14px] text-text-primary dark:text-[#f5f5f8] placeholder:text-text-muted focus:border-[#a07855] focus:outline-none transition-colors"
+                      />
+                      {searchLoading && (
+                        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted animate-spin" />
+                      )}
+                    </div>
                     
-                    {/* Common foods dropdown */}
-                    {showCommonFoods && (
-                      <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-white dark:bg-[#1f242d] border border-[#e1ddd8] dark:border-[#3d4654] rounded-[10px] shadow-lg">
-                        <p className="px-3 py-2 font-sans text-[11px] text-text-muted uppercase tracking-wide">
-                          Common foods
-                        </p>
-                        {COMMON_FOODS.filter(f => 
-                          f.name.toLowerCase().includes(newIngName.toLowerCase())
-                        ).map((food, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => handleSelectCommonFood(food)}
-                            className="w-full px-3 py-2 text-left font-sans text-[14px] text-text-primary dark:text-[#f5f5f8] hover:bg-[#f3f1ef] dark:hover:bg-[#262b35] transition-colors"
-                          >
-                            {food.name}
-                            <span className="text-text-muted text-[12px] ml-2">
-                              {food.caloriesPer100g} kcal/100g
-                            </span>
-                          </button>
-                        ))}
+                    {/* Search results dropdown */}
+                    {showDropdown && (showSearchResults || showFallback || searchLoading) && (
+                      <div className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto bg-white dark:bg-[#1f242d] border border-[#e1ddd8] dark:border-[#3d4654] rounded-[10px] shadow-lg">
+                        {searchLoading && (
+                          <div className="px-3 py-4 text-center">
+                            <Loader2 className="w-5 h-5 text-text-muted animate-spin mx-auto mb-2" />
+                            <p className="font-sans text-[12px] text-text-muted">
+                              Searching food databases...
+                            </p>
+                          </div>
+                        )}
+                        
+                        {!searchLoading && showSearchResults && (
+                          <>
+                            <div className="px-3 py-2 border-b border-[#e1ddd8] dark:border-[#262b35] flex items-center gap-2">
+                              <Database className="w-3.5 h-3.5 text-[#a07855]" />
+                              <span className="font-sans text-[11px] text-text-muted uppercase tracking-wide">
+                                {searchResults.length} results from USDA & Open Food Facts
+                              </span>
+                            </div>
+                            {searchResults.map((food) => (
+                              <button
+                                key={food.id}
+                                onClick={() => handleSelectFood(food)}
+                                className="w-full px-3 py-2.5 text-left hover:bg-[#f3f1ef] dark:hover:bg-[#262b35] transition-colors border-b border-[#f3f1ef] dark:border-[#262b35] last:border-0"
+                              >
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-sans text-[14px] text-text-primary dark:text-[#f5f5f8] truncate">
+                                      {food.name}
+                                    </p>
+                                    {food.brand && (
+                                      <p className="font-sans text-[11px] text-text-muted truncate">
+                                        {food.brand}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="text-right shrink-0">
+                                    <span className="font-sans text-[13px] font-semibold text-[#a07855]">
+                                      {food.caloriesPer100g}
+                                    </span>
+                                    <span className="font-sans text-[11px] text-text-muted ml-0.5">
+                                      kcal/100g
+                                    </span>
+                                  </div>
+                                </div>
+                                {(food.protein || food.carbs || food.fat) && (
+                                  <div className="flex gap-3 mt-1">
+                                    {food.protein && (
+                                      <span className="font-sans text-[10px] text-text-muted">
+                                        P: {food.protein}g
+                                      </span>
+                                    )}
+                                    {food.carbs && (
+                                      <span className="font-sans text-[10px] text-text-muted">
+                                        C: {food.carbs}g
+                                      </span>
+                                    )}
+                                    {food.fat && (
+                                      <span className="font-sans text-[10px] text-text-muted">
+                                        F: {food.fat}g
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </>
+                        )}
+
+                        {!searchLoading && showFallback && filteredFallback.length > 0 && (
+                          <>
+                            <p className="px-3 py-2 font-sans text-[11px] text-text-muted uppercase tracking-wide border-b border-[#e1ddd8] dark:border-[#262b35]">
+                              Common foods
+                            </p>
+                            {filteredFallback.map((food, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => handleSelectFood(food)}
+                                className="w-full px-3 py-2 text-left font-sans text-[14px] text-text-primary dark:text-[#f5f5f8] hover:bg-[#f3f1ef] dark:hover:bg-[#262b35] transition-colors"
+                              >
+                                {food.name}
+                                <span className="text-text-muted text-[12px] ml-2">
+                                  {food.caloriesPer100g} kcal/100g
+                                </span>
+                              </button>
+                            ))}
+                          </>
+                        )}
+
+                        {/* Manual entry option */}
+                        <button
+                          onClick={() => {
+                            setManualMode(true);
+                            setShowDropdown(false);
+                          }}
+                          className="w-full px-3 py-2.5 text-left font-sans text-[13px] text-[#a07855] hover:bg-[#f3f1ef] dark:hover:bg-[#262b35] transition-colors border-t border-[#e1ddd8] dark:border-[#262b35]"
+                        >
+                          <Plus className="w-3.5 h-3.5 inline mr-1.5" />
+                          Enter &quot;{newIngName}&quot; manually with custom calories
+                        </button>
                       </div>
                     )}
                   </div>
+
+                  {/* Manual mode indicator */}
+                  {manualMode && (
+                    <p className="font-sans text-[12px] text-[#a07855]">
+                      Manual entry mode — enter calories per 100g below
+                    </p>
+                  )}
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="relative">
@@ -360,4 +508,3 @@ export function AddMealSheet({ isOpen, onClose, onSave }: AddMealSheetProps) {
     </AnimatePresence>
   );
 }
-
